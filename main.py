@@ -8,11 +8,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QPixmap, QIcon
 from PIL import Image
+from PyQt5.QtCore import Qt
 
 class App(QWidget):
   def __init__(self):
     super().__init__()
-    self.setWindowIcon(QIcon("icon.png"))
+    self.setWindowIcon(QIcon("icon.ico"))
     self.lastPath = os.path.expanduser("~")
     self.setWindowTitle('Image to Text (OCR)')
     self.setGeometry(100, 100, 800, 600)

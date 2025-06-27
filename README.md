@@ -8,5 +8,5 @@ pip install -r requirement.txt
 
 # Build into app
 ```bash
-pyinstaller --onefile --windowed --name "Image to Text" --hidden-import=sip main.py
+pyinstaller --onefile --windowed --name "Image to Text" --hidden-import=sip --icon=icon.ico --add-data "icon.ico;." main.py
 ```
