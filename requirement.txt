@@ -1,0 +1,4 @@
+pytesseract
+pyqt5
+pillow
+pyinstaller
