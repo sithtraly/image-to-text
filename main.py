@@ -3,83 +3,10 @@ import shutil
 import os
 import pytesseract
 from PyQt5.QtWidgets import (
-  QApplication, QWidget, QLabel, QPushButton, QTextEdit,
-  QVBoxLayout, QFileDialog, QMessageBox, QComboBox, 
+  QApplication, QFileDialog, QMessageBox,
 )
-from PyQt5.QtGui import QPixmap, QIcon
-from PIL import Image
-from PyQt5.QtCore import Qt
 
-class App(QWidget):
-  def __init__(self):
-    super().__init__()
-    self.setWindowIcon(QIcon("icon.ico"))
-    self.lastPath = os.path.expanduser("~")
-    self.setWindowTitle('Image to Text (OCR)')
-    self.setGeometry(100, 100, 800, 600)
-    self.setAcceptDrops(True)
-    
-    # Widgets
-    self.imageLabel = QLabel('No image loaded')
-    self.imageLabel.setScaledContents(True)
-    self.imageLabel.setMaximumHeight(300)
-    
-    self.textOutput = QTextEdit()
-    self.textOutput.setPlaceholderText('Extracted text will appear here.')
-    self.textOutput.setReadOnly(True)
-    
-    self.loadButton = QPushButton('Load Image')
-    self.convertButton = QPushButton('Convert')
-    
-    self.langSelector = QComboBox()
-    
-    # Layout
-    layout = QVBoxLayout()
-    layout.addWidget(self.loadButton)
-    layout.addWidget(self.langSelector)
-    layout.addWidget(self.convertButton)
-    layout.addWidget(self.imageLabel)
-    layout.addWidget(self.textOutput)
-    self.setLayout(layout)
-    
-    # Event
-    self.loadButton.clicked.connect(self.loadImage)
-    self.convertButton.clicked.connect(self.convert)
-    
-    self.imagePath = None
-  
-  def dragEnterEvent(self, e):
-    if e.mimeData().hasUrls():
-      e.acceptProposedAction()
-    else:
-      e.ignore()
-      
-  def dropEvent(self, e):
-    urls = e.mimeData().urls()
-    if urls:
-      self.imagePath = urls[0].toLocalFile()
-      self.imageLabel.setPixmap(QPixmap(self.imagePath))
-    
-  def loadImage(self):
-    fileName, _ = QFileDialog.getOpenFileName(
-      self, 'Open image', self.lastPath, 'Image Files (*.png *.jpeg *.jpg *.bmp)'
-    )
-    
-    if fileName:
-      self.imagePath = fileName
-      self.imageLabel.setPixmap(QPixmap(fileName))
-      self.lastPath = os.path.dirname(fileName)
-  
-  def convert(self):
-    if not self.imagePath:
-      self.textOutput.setPlainText('Please load image first!')
-      return
-    
-    # OCR Process
-    image = Image.open(self.imagePath)
-    lang = self.langSelector.currentText()
-    text = pytesseract.image_to_string(image, lang=lang)
-    self.textOutput.setPlainText(text)
+from mainwindows import MainWindow
   
 def checkTessract(self):
   if shutil.which("tesseract"):
@@ -117,7 +44,7 @@ def checkTessract(self):
 
 if __name__ == '__main__':
   app = QApplication(sys.argv)
-  window = App()
+  window = MainWindow()
   checkTessract(window)
   window.show()
   langs = pytesseract.get_languages(config='')
