@@ -5,12 +5,12 @@ from PyQt5.QtWidgets import (
   QVBoxLayout, QFileDialog, QComboBox, QGridLayout,
   QSizePolicy, QMainWindow,
 )
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QSettings, QThread
 from PyQt5.QtGui import QPixmap, QIcon
 from PIL import Image
 import re
 
-from menu import MenuBar
+from components.menu import MenuBar
 
 class MainWindow(QMainWindow):
   def __init__(self):
@@ -94,11 +94,10 @@ class MainWindow(QMainWindow):
     if not self.imagePath:
       self.textOutput.setPlainText('Please load image first!')
       return
-    
+
     # OCR Process
     image = Image.open(self.imagePath)
     lang = self.langSelector.currentText()
     text = pytesseract.image_to_string(image, lang=lang)
     text = re.sub(r'(?<!\n)\n(?!\n)', ' ', text)
     self.textOutput.setPlainText(text)
-    # print(self.textOutput.toPlainText())

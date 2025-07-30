@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
   QApplication, QFileDialog, QMessageBox,
 )
 
-from mainwindows import MainWindow
+from components.mainwindows import MainWindow
   
 def checkTessract(self):
   if shutil.which("tesseract"):

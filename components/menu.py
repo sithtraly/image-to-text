@@ -64,6 +64,6 @@ class MenuBar(QMenuBar):
       target = open('tesseract.txt', 'r').read()
       target = re.sub('tesseract.exe', 'tessdata', target)
       shutil.copy(filePath, target)
-        
+
   def openOcrWebpage(self):
     webbrowser.open('https://github.com/tesseract-ocr/tessdata')
