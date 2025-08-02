@@ -3,14 +3,18 @@ import pytesseract
 from PyQt5.QtWidgets import (
   QWidget, QLabel, QPushButton, QTextEdit,
   QVBoxLayout, QFileDialog, QComboBox, QGridLayout,
-  QSizePolicy, QMainWindow,
+  QSizePolicy, QMainWindow, QApplication, QShortcut
 )
-from PyQt5.QtCore import QSettings, QThread
-from PyQt5.QtGui import QPixmap, QIcon
-from PIL import Image
+from PyQt5.QtCore import QSettings, QBuffer, QIODevice
+from PyQt5.QtGui import QPixmap, QIcon, QKeySequence
+from PIL import Image, ImageQt
+import PIL
 import re
 
 from components.menu import MenuBar
+
+PIL.ImageQt.QBuffer = QBuffer
+PIL.ImageQt.QIODevice = QIODevice
 
 class MainWindow(QMainWindow):
   def __init__(self):
@@ -40,14 +44,15 @@ class MainWindow(QMainWindow):
     
     self.loadButton = QPushButton('Load Image')
     self.convertButton = QPushButton('Convert')
+    self.pasteButton = QPushButton('Paste from clipboard')
     
     self.langSelector = QComboBox()
     
     # Button layout
     btLayout = QGridLayout()
     btLayout.setVerticalSpacing(10)
-    btPerRow = 3
-    for i, bt in enumerate([self.loadButton, self.langSelector, self.convertButton]):
+    btPerRow = 4
+    for i, bt in enumerate([self.pasteButton, self.loadButton, self.langSelector, self.convertButton]):
       row = i // btPerRow
       col = i % btPerRow
       bt.setFixedHeight(30)
@@ -63,10 +68,22 @@ class MainWindow(QMainWindow):
     # Event
     self.loadButton.clicked.connect(self.loadImage)
     self.convertButton.clicked.connect(self.convert)
+    self.pasteButton.clicked.connect(self.pasteFromClipboard)
     
     self.imagePath = None
+
+    paste_shortcut = QShortcut(QKeySequence("Ctrl+V"), self)
+    paste_shortcut.activated.connect(self.pasteFromClipboard)
     
     # menu.menuBar(self)
+  
+  def pasteFromClipboard(self):
+    clipboard = QApplication.clipboard()
+    image = clipboard.image()
+
+    if not image.isNull():
+      pixmap = QPixmap.fromImage(image)
+      self.imageLabel.setPixmap(pixmap)
   
   def dragEnterEvent(self, e):
     if e.mimeData().hasUrls():
@@ -91,12 +108,16 @@ class MainWindow(QMainWindow):
       self.setting.setValue('lastPath', os.path.dirname(fileName))
   
   def convert(self):
-    if not self.imagePath:
+    if self.imagePath:
+      # OCR Process
+      image = Image.open(self.imagePath)
+    elif self.imageLabel.pixmap() is not None:
+      qimage = self.imageLabel.pixmap().toImage()
+      image = ImageQt.fromqimage(qimage)
+    else:
       self.textOutput.setPlainText('Please load image first!')
       return
-
-    # OCR Process
-    image = Image.open(self.imagePath)
+    
     lang = self.langSelector.currentText()
     text = pytesseract.image_to_string(image, lang=lang)
     text = re.sub(r'(?<!\n)\n(?!\n)', ' ', text)
