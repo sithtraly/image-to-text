@@ -4,9 +4,10 @@ from PyQt5.QtWidgets import (
 import os
 import webbrowser
 import shutil
-import re
 import sys
 import subprocess
+
+from components.myfunc import getPath, reloadLangs
 
 class MenuBar(QMenuBar):
   def __init__(self, parent=None):
@@ -61,8 +62,7 @@ class MenuBar(QMenuBar):
   def uploadOcr(self):
     filePath, _ = QFileDialog.getOpenFileName(self, 'Upload ocr', self.parent.setting.value('lastPath', '~'), 'Trained data (*.traineddata)')
     if (filePath):
-      target = open('tesseract.txt', 'r').read()
-      target = re.sub('tesseract.exe', 'tessdata', target)
+      target = getPath(os.path.join('Tesseract-OCR', 'tessdata'))
       shutil.copy(filePath, target)
 
   def openOcrWebpage(self):

@@ -12,6 +12,7 @@ import PIL
 import re
 
 from components.menu import MenuBar
+from components.myfunc import getPath, reloadLangs
 
 PIL.ImageQt.QBuffer = QBuffer
 PIL.ImageQt.QIODevice = QIODevice
@@ -19,12 +20,14 @@ PIL.ImageQt.QIODevice = QIODevice
 class MainWindow(QMainWindow):
   def __init__(self):
     super().__init__()
-    fontPath = os.path.join('fonts', 'NotoSansKhmer-Regular.ttf')
+    
+    tesseractPath = getPath(os.path.join('Tesseract-OCR', 'tesseract.exe'))
+    pytesseract.pytesseract.tesseract_cmd = tesseractPath
+
+    fontPath = getPath(os.path.join('fonts', 'NotoSansKhmer-Regular.ttf'))
     fontId = QFontDatabase.addApplicationFont(fontPath)
     if fontId == -1:
       print("Failed to load font!")
-    else:
-      print(fontId)
 
     NotoSansKhmer = QFontDatabase.applicationFontFamilies(fontId)[0]
     self.font = QFont(NotoSansKhmer, 12)
@@ -57,13 +60,11 @@ class MainWindow(QMainWindow):
     self.convertButton = QPushButton('Convert')
     self.pasteButton = QPushButton('Paste from clipboard')
     
-    self.langSelector = QComboBox()
-    
     # Button layout
     btLayout = QGridLayout()
     btLayout.setVerticalSpacing(10)
-    btPerRow = 4
-    for i, bt in enumerate([self.pasteButton, self.loadButton, self.langSelector, self.convertButton]):
+    btPerRow = 3
+    for i, bt in enumerate([self.pasteButton, self.loadButton, self.convertButton]):
       row = i // btPerRow
       col = i % btPerRow
       bt.setFixedHeight(30)
@@ -85,6 +86,9 @@ class MainWindow(QMainWindow):
 
     paste_shortcut = QShortcut(QKeySequence("Ctrl+V"), self)
     paste_shortcut.activated.connect(self.pasteFromClipboard)
+
+    self.langs = ''
+    reloadLangs(self)
     
     # menu.menuBar(self)
   
@@ -129,7 +133,6 @@ class MainWindow(QMainWindow):
       self.textOutput.setPlainText('Please load image first!')
       return
     
-    lang = self.langSelector.currentText()
-    text = pytesseract.image_to_string(image, config=f'-l eng+{lang}')
+    text = pytesseract.image_to_string(image, config=f'-l {self.langs}')
     text = re.sub(r'(?<!\n)\n(?!\n)', ' ', text)
     self.textOutput.setPlainText(text)
