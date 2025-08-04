@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
   QSizePolicy, QMainWindow, QApplication, QShortcut
 )
 from PyQt5.QtCore import QSettings, QBuffer, QIODevice
-from PyQt5.QtGui import QPixmap, QIcon, QKeySequence
+from PyQt5.QtGui import QPixmap, QIcon, QKeySequence, QFont, QFontDatabase
 from PIL import Image, ImageQt
 import PIL
 import re
@@ -19,6 +19,16 @@ PIL.ImageQt.QIODevice = QIODevice
 class MainWindow(QMainWindow):
   def __init__(self):
     super().__init__()
+    fontPath = os.path.join('fonts', 'NotoSansKhmer-Regular.ttf')
+    fontId = QFontDatabase.addApplicationFont(fontPath)
+    if fontId == -1:
+      print("Failed to load font!")
+    else:
+      print(fontId)
+
+    NotoSansKhmer = QFontDatabase.applicationFontFamilies(fontId)[0]
+    self.font = QFont(NotoSansKhmer, 12)
+
     self.setting = QSettings('ImageToText', 'ImageToText')
     menuBar = MenuBar(self)
     self.setMenuBar(menuBar)
@@ -35,12 +45,13 @@ class MainWindow(QMainWindow):
     # Widgets
     self.imageLabel = QLabel('No image loaded')
     self.imageLabel.setScaledContents(True)
-    self.imageLabel.setMaximumHeight(300)
-    self.imageLabel.setMaximumWidth(300)
+    # self.imageLabel.setMaximumHeight(300)
+    # self.imageLabel.setMaximumWidth(300)
     
     self.textOutput = QTextEdit()
     self.textOutput.setPlaceholderText('Extracted text will appear here.')
     self.textOutput.setReadOnly(True)
+    self.textOutput.setFont(self.font)
     
     self.loadButton = QPushButton('Load Image')
     self.convertButton = QPushButton('Convert')
@@ -119,6 +130,6 @@ class MainWindow(QMainWindow):
       return
     
     lang = self.langSelector.currentText()
-    text = pytesseract.image_to_string(image, lang=lang)
+    text = pytesseract.image_to_string(image, config=f'-l eng+{lang}')
     text = re.sub(r'(?<!\n)\n(?!\n)', ' ', text)
     self.textOutput.setPlainText(text)
