@@ -1,13 +1,16 @@
 from PyQt5.QtWidgets import (
   QFileDialog, QAction, QMenuBar, QMenu
 )
+from PyQt5.QtCore import QEvent
 import os
 import webbrowser
 import shutil
 import sys
 import subprocess
 
-from components.myfunc import getPath, reloadLangs
+from components.myfunc import getPath
+from dialogs.about import AboutDialog
+from dialogs.ocr import OcrListDialog
 
 class MenuBar(QMenuBar):
   def __init__(self, parent=None):
@@ -37,13 +40,22 @@ class MenuBar(QMenuBar):
     
     findOcr = QAction('Find OCR', self)
     findOcr.triggered.connect(self.openOcrWebpage)
+
+    ocrList = QAction('OCR List', self)
+    ocrList.triggered.connect(self.openOcrList)
     
-    ocr.addAction(uploadOcr)
-    ocr.addAction(findOcr)
+    ocr.addActions([ocrList, uploadOcr, findOcr])
+
+    about = QMenu('About', self)
+    aboutAction = QAction('About', self)
+    aboutAction.triggered.connect(self.openAbout)
+
+    about.addActions([aboutAction])
     
     self.addMenu(file)
     self.addMenu(ocr)
-    
+    self.addMenu(about)
+
   def saveAs(self):
     filePath, _ = QFileDialog.getSaveFileName(self, "Save file as", self.parent.setting.value('lastPath', '~'), 'Text Files (*.txt)')
     if filePath:
@@ -67,3 +79,11 @@ class MenuBar(QMenuBar):
 
   def openOcrWebpage(self):
     webbrowser.open('https://github.com/tesseract-ocr/tessdata')
+
+  def openAbout(self):
+    dialog = AboutDialog()
+    dialog.exec_()
+  
+  def openOcrList(self):
+    dialog = OcrListDialog()
+    dialog.exec_()

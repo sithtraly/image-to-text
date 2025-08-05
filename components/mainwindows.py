@@ -2,8 +2,8 @@ import os
 import pytesseract
 from PyQt5.QtWidgets import (
   QWidget, QLabel, QPushButton, QTextEdit,
-  QVBoxLayout, QFileDialog, QComboBox, QGridLayout,
-  QSizePolicy, QMainWindow, QApplication, QShortcut
+  QVBoxLayout, QFileDialog, QGridLayout,
+  QSizePolicy, QMainWindow, QApplication, QShortcut, QDesktopWidget
 )
 from PyQt5.QtCore import QSettings, QBuffer, QIODevice
 from PyQt5.QtGui import QPixmap, QIcon, QKeySequence, QFont, QFontDatabase
@@ -12,7 +12,7 @@ import PIL
 import re
 
 from components.menu import MenuBar
-from components.myfunc import getPath, reloadLangs
+from components.myfunc import getPath, getLangs
 
 PIL.ImageQt.QBuffer = QBuffer
 PIL.ImageQt.QIODevice = QIODevice
@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
 
     fontPath = getPath(os.path.join('fonts', 'NotoSansKhmer-Regular.ttf'))
     fontId = QFontDatabase.addApplicationFont(fontPath)
-    if fontId == -1:
+    if fontId == -1 and __debug__:
       print("Failed to load font!")
 
     NotoSansKhmer = QFontDatabase.applicationFontFamilies(fontId)[0]
@@ -86,11 +86,15 @@ class MainWindow(QMainWindow):
 
     paste_shortcut = QShortcut(QKeySequence("Ctrl+V"), self)
     paste_shortcut.activated.connect(self.pasteFromClipboard)
-
-    self.langs = ''
-    reloadLangs(self)
     
     # menu.menuBar(self)
+    self.center_window()
+  
+  def center_window(self):
+      frame_geometry = self.frameGeometry()  # Current window geometry
+      screen_center = QDesktopWidget().availableGeometry().center()  # Center of screen
+      frame_geometry.moveCenter(screen_center)  # Move frame to center point
+      self.move(frame_geometry.topLeft())  # Move window's top-left to that point
   
   def pasteFromClipboard(self):
     clipboard = QApplication.clipboard()
@@ -132,6 +136,14 @@ class MainWindow(QMainWindow):
     else:
       self.textOutput.setPlainText('Please load image first!')
       return
+
+    langs = getLangs()
+    self.langs = ''
+    for lang in langs:
+      if len(self.langs) <= 0:
+        self.langs += lang
+      else:
+        self.langs += f'+{lang}'
     
     text = pytesseract.image_to_string(image, config=f'-l {self.langs}')
     text = re.sub(r'(?<!\n)\n(?!\n)', ' ', text)

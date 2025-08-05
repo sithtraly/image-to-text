@@ -1,4 +1,4 @@
-#define MyAppVersion "{{VERSION}}"
+#define MyAppVersion "1.0.5"
 
 [Setup]
 AppName=Image to Text
